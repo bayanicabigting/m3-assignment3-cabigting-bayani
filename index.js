@@ -12,84 +12,64 @@ var words = [
   'mango'
 ]
 
-var correctGuesses = []
-var incorrectGuesses = []
-var guessedLetters = []
-
-var maxGuesses = 10
-var wins = 0
-var losses = 0
-
 var wordToGuess = document.getElementById('word-to-guess')
 var remainingGuess = document.getElementById('remaining-guesses')
 var incorrectLetters = document.getElementById('incorrect-letters')
 var previousWord = document.getElementById('previous-word')
 var wins = document.getElementById('wins')
-var loss = document.getElementById('losses')
+var losses = document.getElementById('losses')
 
-remainingGuess.textContent = maxGuesses;
+var word;
+var display;
+var wrong = [];
+var guesses = 10;
 
-var currentWord = words[Math.floor(Math.random() * words.length)];      
-var tempCurrentWord = currentWord
-var hiddenWord = Array(currentWord.length + 1).join('_');
+startGame();
 
-wordToGuess.textContent = hiddenWord
+function startGame() {
+  word = words[Math.floor(Math.random() * words.length)];
+  display = Array(word.length).fill('_');
+  wrong = [];
+  guesses = 10;
 
-document.onkeyup = function(e) {
-  var key = e.key.toLowerCase()
-  console.log(currentWord)
+  wordToGuess.textContent = display.join('');
+  incorrectLetters.textContent = '';
+  remainingGuess.textContent = guesses;
+}
 
-  var letterRegex = /^[a-z]$/;
+document.addEventListener('keyup', function(e) {
+  var letter = e.key.toLowerCase();
 
-  if (!letterRegex.test(key) || guessedLetters.includes(key)) {
-    return;
-  };
+  if (!/^[a-z]$/.test(letter)) return;
 
-  guessedLetters.push(key)
+  if (display.includes(letter) || wrong.includes(letter)) return;
 
-  if (currentWord.includes(key)) {
-    correctGuesses.push(key);
-    let hiddenWordLetters = hiddenWord.split('')
-    let currentWordLetters = currentWord.split('')
-
-     for (let i = 0; i < currentWord.length; i++) {
-       if (currentWord[i] === key) {
-        hiddenWordLetters[i] = key;
-       }
+  if (word.includes(letter)) {
+    for (var i = 0; i < word.length; i++) {
+      if (word[i] === letter) {
+        display[i] = letter;
+      }
     }
 
-  hiddenWord = hiddenWordLetters.join('')
-    currentWord = currentWordLetters.join('')
+    wordToGuess.textContent = display.join('');
 
-    wordToGuess.textContent = hiddenWord
-
-    if (tempCurrentWord === hiddenWord) {
-      wins.innerText++
-      reset()
+    if (!display.includes('_')) {
+      wins.textContent++;
+      previousWord.textContent = word;
+      startGame();
     }
 
   } else {
+    wrong.push(letter);
+    guesses--;
 
-    incorrectGuesses.push(key)
-    incorrectLetters.textContent = incorrectGuesses.join(', ');
-    remainingGuess.textContent--;
+    incorrectLetters.textContent = wrong.join(', ');
+    remainingGuess.textContent = guesses;
 
-    if (remainingGuess.textContent == 0) {
-      loss.innerText++; 
-      reset()
+    if (guesses === 0) {
+      losses.textContent++;
+      previousWord.textContent = word;
+      startGame();
     }
   }
-  
-function reset() {
-  previousWord.innerText = tempCurrentWord;
-  currentWord = words[Math.floor(Math.random() * words.length)];
-  tempCurrentWord = currentWord
-  hiddenWord = Array(currentWord.length + 1).join('_');
-  wordToGuess.innerText = hiddenWord
-  remainingGuess.textContent = maxGuesses;
-  incorrectGuesses = [];
-  guessedLetters = [];
-  incorrectLetters.textContent = "";
-}
-
-}
+});
